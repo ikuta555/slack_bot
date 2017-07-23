@@ -1,55 +1,46 @@
-# saying_slack_bot.rb
+# bot.rb
 require 'http'
 require 'json'
 require 'faye/websocket'
 require 'eventmachine'
-require './SlackTextClass.rb'
+require './Message.rb'
 
-response = HTTP.post("https://slack.com/api/rtm.start", params: { 
+SLACK_API_URL = 'https://slack.com/api/rtm.start'
+
+response = HTTP.post(SLACK_API_URL, params: { 
     token: ENV['SLACK_API_TOKEN']
   })
 rc = JSON.parse(response.body)
 url = rc['url']
 
 EM.run do
+  # Web Socketインスタンスの立ち上げ
   ws = Faye::WebSocket::Client.new(url)
-  ts = 0.0
-  user = nil
 
+  #  接続が確立した時の処理
   ws.on :open do
     p [:open]
   end
 
+  # RTM APIから情報を受け取った時の処理
   ws.on :message do |event|
     data = JSON.parse(event.data)
     p [:message, data]
-
-    unless user==data['user'] then
-      case data['type']
-      when 'user_typing' then
-        text = "<@#{data['user']}> さんが何か言おうとしています。みなさんお静かに..."
-      when 'message' then
-        reply = SlackText.new('message')
-        text = reply.text
-      else
-        text = nil
-      end
-
-      if text then
+    if data['type'] == 'message' && data['user'] then
+      replay_text = Message.replay_message(data['text'])
+      unless replay_text == 0 then
         ws.send({
           type: 'message',
-          text: text,
+          text: replay_text,
           channel: data['channel']
           }.to_json)
       end
     end
-
-    user = data['user']
-
   end
 
+  # 接続が切断した時の処理
   ws.on :close do
-    p [:close, event.code]
+    p [:close]
     ws = nil
     EM.stop
   end

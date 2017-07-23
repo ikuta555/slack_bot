@@ -1,22 +1,12 @@
 require 'MeCab'
 
-class Saying
-  attr_reader :word, :grate
-
-  def initialize(word, grate)
-    @word = word
-    @grate = grate
-  end
-
-  def parse_noun  
-    
+class String
+  def parse_noun
     model = MeCab::Model.new(ARGV.join(" "))
     tagger = model.createTagger()
-  
-    # puts tagger.parse(@word)
-  
-    node = tagger.parseToNode(@word)
-  
+
+    node = tagger.parseToNode(self)
+
     nouns = []
     while node
       # print node.surface, "\t", node.feature, "\t", node.cost, "\n"   # debug
@@ -30,4 +20,3 @@ class Saying
   return nouns
   end
 end
-
