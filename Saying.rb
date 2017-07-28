@@ -10,7 +10,7 @@ html = open(SAYING_URL).read
 # NokogiriとXPathでスクレイピング
 xpath = "//*[@id=\"atsumeWrapper\"]/div[3]/div"
 doc = Nokogiri::HTML.parse(html)
-trs = doc.xpath(xpath)
+div = doc.xpath(xpath)
 
 # 名言のデータはsayingsの中に格納される
 # 名言に含まれる名詞のデータはnouns_listの中
@@ -18,7 +18,7 @@ sayings = []
 nouns_list = Hash.new("NoData")
 
 # HTMLの解析結果をtr要素ごとに処理します
-trs.each_with_index do |tr, index|
+div.each_with_index do |tr, index|
   dialog = tr.xpath('./p').text
   greatman = tr.xpath('./h2').text
   saying_hash = { dialog: dialog, greatman: greatman }
